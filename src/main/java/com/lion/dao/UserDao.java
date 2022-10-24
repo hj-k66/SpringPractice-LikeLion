@@ -47,7 +47,12 @@ public class UserDao {
     }
     public void deleteAll() throws SQLException {
         StatementStrategy st = new DeleteAllStrategy();
-        jdbcContextWithStatementStrategy(st);
+        jdbcContextWithStatementStrategy(new StatementStrategy() {
+            @Override
+            public PreparedStatement makePreparedStatement(Connection connection) throws SQLException {
+                return connection.prepareStatement("DELETE from users");
+            }
+        });
 
     }
 
@@ -95,8 +100,17 @@ public class UserDao {
 
     public void add(User user) throws SQLException, ClassNotFoundException {
 
-        StatementStrategy st = new AddStrategy(user);
-        jdbcContextWithStatementStrategy(st);
+        jdbcContextWithStatementStrategy(new StatementStrategy() {
+            @Override
+            public PreparedStatement makePreparedStatement(Connection connection) throws SQLException {
+                PreparedStatement ps = connection.prepareStatement("INSERT INTO users(id,name,password) values(?,?,?)"); //sql문 템플릿
+                ps.setString(1,user.getId());
+                ps.setString(2,user.getName());
+                ps.setString(3,user.getPassword());
+
+                return ps;
+            }
+        });
 
     }
 
